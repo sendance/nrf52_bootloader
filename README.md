@@ -1,3 +1,38 @@
+# Sendance documentation
+
+nrf sdk version 15.3 is used, because it has the same version of the Softdevice (s140 v6.1.1) that is used in Arduino
+The version number of the softdevice has a representation in a hex code needed for generating the DFU packet.
+s140 v6.1.1 => 0xB6  (this is used)
+s140 7.0.1  => 0xCA 
+
+Application is stored at 0x26000 on Softdevice s140 v6.1.1 and on 0x27000 on v7.0.1 onward!
+
+nrfutil.exe pkg generate --hw-version 52 --sd-req 0xB6 --application-version 1 --application .\firmware.bin --key-file .\private.pem app_dfu_gridFW_sdCA.zip
+
+
+This is the repo of the kaidyth bootloader: https://github.com/kaidyth/nrf52_bootloader
+This is important for building by yourself: https://github.com/kaidyth/nrf52_bootloader/wiki/Getting-Started
+
+Before changing to DEBUG=1 always delete folder... clean does not work?
+
+NORDIC_SDK_PATH (Environmental variables in Windows)
+C:/Users/JSE-Sendance/libraries/nRF5_SDK_15.3.0
+
+Command: (make with chocolatey installed)
+make BOARD=feather-express DEBUG=1 flash
+nrfjprog.exe -f nrf52 --reset
+
+nRF sdk 15.3.0
+compiler: defined in Makefile.windows
+GNU_INSTALL_ROOT := C:/Users/JSE-Sendance/libraries/arm_toolchain/9_2020-q2-update/bin/
+(use exactly this version of the compiler, you can find it online)
+
+Also important to read:
+https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v15.0.0%2Flib_bootloader_dfu_banks.html
+
+
+
+
 # Kaidyth Bootloader
 
 [![Travis Build Status](https://img.shields.io/travis/com/charlesportwoodii/kaidyth_nrf52_bootloader.svg?label=TravisCI&style=flat-square)](https://travis-ci.com/charlesportwoodii/kaidyth_nrf52_bootloader)
