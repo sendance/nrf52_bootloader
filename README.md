@@ -2,15 +2,19 @@
 
 nrf sdk version 15.3 is used, because it has the same version of the Softdevice (s140 v6.1.1) that is used in Arduino
 The version number of the softdevice has a representation in a hex code needed for generating the DFU packet.
+
 s140 v6.1.1 => 0xB6  (this is used)
+
 s140 7.0.1  => 0xCA 
 
 Application is stored at 0x26000 on Softdevice s140 v6.1.1 and on 0x27000 on v7.0.1 onward!
 
+```
 nrfutil.exe pkg generate --hw-version 52 --sd-req 0xB6 --application-version 1 --application .\firmware.bin --key-file .\private.pem app_dfu_gridFW_sdCA.zip
-
+```
 
 This is the repo of the kaidyth bootloader: https://github.com/kaidyth/nrf52_bootloader
+
 This is important for building by yourself: https://github.com/kaidyth/nrf52_bootloader/wiki/Getting-Started
 
 Before changing to DEBUG=1 always delete folder... clean does not work?
