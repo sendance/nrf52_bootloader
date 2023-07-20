@@ -3,32 +3,28 @@ BOARD_LIST := $(sort $(subst /,,$(subst boards/,,$(dir $(wildcard boards/*/)))))
 
 rwildcard = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
 
-default: check-env ## Builds the bootloaded for selected board
+default: check-env
 ifneq ($(filter $(BOARD),$(BOARD_LIST)),)
 	$(MAKE) merge -C boards/$(BOARD)/s140
 else
 	$(error Run `make` with a board specified: ($(BOARD_LIST)))
 endif
 
-.PHONY: help
-help:	## Lists all available commands and a brief description.
-	@grep -E '^[a-zA-Z/_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+all: check-env $(BOARD_LIST)
 
-all: check-env $(BOARD_LIST) ## Builds the bootloader for all boards
-
-$(BOARD_LIST): ## Builds the bootloader for the specified board
+$(BOARD_LIST):
 	$(MAKE) -C boards/$@/s140
 
-flash: default ## Builds and flashes the bootloader over nrfjprog
+flash: default
 	$(MAKE) flash -C boards/$(BOARD)/s140
 
-clean_build: clean ## Builds and creates a DFU .zip package
+clean_build: clean
 	$(MAKE) -C boards/$(BOARD)/s140 dfu_package
 
-clean_flash: clean_build ## Performs a clean build and flashes it via jLink
+clean_flash: clean_build
 	$(MAKE) -C boards/$(BOARD)/s140 erase flash
 
-usb_flash: check_port default ## Flashes the .zip over USB
+usb_flash: check_port default
 	$(MAKE) -C boards/$(BOARD)/s140 usb_flash
 
 check_port:
@@ -36,7 +32,7 @@ ifndef PORT
 	$(error PORT must be defined to perform usb serial flashing)
 endif
 
-clean: check-env patch ## Cleans the environment for the specified board
+clean: check-env patch
 ifneq ($(filter $(BOARD),$(BOARD_LIST)),)
 	@cd boards/$(BOARD)/s140 && $(MAKE) clean
 	@rm -rf $(BOARD).hex
@@ -57,13 +53,13 @@ ifndef NORDIC_SDK_PATH
 	$(error NORDIC_SDK_PATH is not defined.)
 endif
 
-private.pem: ## Generates a new private key
+private.pem:
 	echo y | nrfutil keys generate ./private.pem
 
-dfu_public_key.c: private.pem ## Generates a new public key from a generated private key
+dfu_public_key.c: private.pem
 	nrfutil keys display --key pk --format code private.pem --out_file dfu_public_key.c
 
-patch: ## Patches the files in the nordic SDK to support additional bootloader features
+patch:
 	@for file in $(subst ./sdk/,,$(call rwildcard,./sdk/,*.c)); do \
 		if patch -p0 -s -f --dry-run --reject-file /dev/null $(NORDIC_SDK_PATH)/$${file} ./sdk/$${file}; then \
 			patch --forward --unified $(NORDIC_SDK_PATH)/$${file} ./sdk/$${file}; \

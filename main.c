@@ -66,13 +66,11 @@
 #include "nrf_delay.h"
 #include "nrf_power.h"
 
-#define DFU_DBLRST_MAGIC                0x02fc3c0a
-#define DFU_DBLRST_DELAY                500
-#define DFU_DBLRST_MEMADDR              0x20002A90
+#define DFU_DBLRST_MAGIC 0x02fc3c0a
+#define DFU_DBLRST_DELAY 500
+#define DFU_DBLRST_MEMADDR 0x20002A90
 
-
-uint32_t* dblrst_mem = ((uint32_t*) DFU_DBLRST_MEMADDR);
-
+uint32_t *dblrst_mem = ((uint32_t *)DFU_DBLRST_MEMADDR);
 
 static void do_reset(void)
 {
@@ -80,34 +78,30 @@ static void do_reset(void)
 
 #if NRF_MODULE_ENABLED(NRF_LOG_BACKEND_RTT)
     // To allow the buffer to be flushed by the host.
-    nrf_delay_ms(500);
+    nrf_delay_ms(100);
 #endif
-
-    nrf_delay_ms(NRF_BL_RESET_DELAY_MS);
-
+#ifdef NRF_DFU_DEBUG_VERSION
+    NRF_BREAKPOINT_COND;
+#endif
     NVIC_SystemReset();
 }
-
 
 static void on_error(void)
 {
     do_reset();
 }
 
-
-void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t * p_file_name)
+void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t *p_file_name)
 {
     NRF_LOG_ERROR("Kaidyth DFU: App Error Handler called: %s:%d", p_file_name, line_num);
     on_error();
 }
-
 
 void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 {
     NRF_LOG_ERROR("Kaidyth DFU: Received a fault! id: 0x%08x, pc: 0x%08x, info: 0x%08x", id, pc, info);
     on_error();
 }
-
 
 void app_error_handler_bare(uint32_t error_code)
 {
@@ -122,31 +116,33 @@ static void dfu_observer(nrf_dfu_evt_type_t evt_type)
 {
     switch (evt_type)
     {
-        case NRF_DFU_EVT_DFU_FAILED:
-        case NRF_DFU_EVT_DFU_ABORTED:
-        case NRF_DFU_EVT_DFU_INITIALIZED:
-            if (LEDS_NUMBER > 0) {
-                bsp_board_led_on(BSP_BOARD_LED_0);
-                if (LEDS_NUMBER <= 2) {
-                    bsp_indication_set(BSP_INDICATE_ADVERTISING_DIRECTED);
-                } else {
-                    bsp_board_led_on(BSP_BOARD_LED_2);
-                    bsp_board_led_off(BSP_BOARD_LED_1);
-                }
-            }
-            break;
-        case NRF_DFU_EVT_TRANSPORT_ACTIVATED:
-            if (LEDS_NUMBER > 2) {
-                bsp_board_led_off(BSP_BOARD_LED_0);
-                bsp_board_led_off(BSP_BOARD_LED_1);
-                bsp_board_led_on(BSP_BOARD_LED_2);
-                bsp_indication_set(BSP_INDICATE_ADVERTISING_DIRECTED);
-            }
-            break;
-        case NRF_DFU_EVT_DFU_STARTED:
-            break;
-        default:
-            break;
+    case NRF_DFU_EVT_DFU_FAILED:
+    case NRF_DFU_EVT_DFU_ABORTED:
+    case NRF_DFU_EVT_DFU_INITIALIZED:
+        bsp_board_led_on(BSP_BOARD_LED_0);
+        if (LEDS_NUMBER <= 2)
+        {
+            bsp_indication_set(BSP_INDICATE_ADVERTISING_DIRECTED);
+        }
+        else
+        {
+            bsp_board_led_on(BSP_BOARD_LED_1);
+            bsp_board_led_off(BSP_BOARD_LED_2);
+        }
+        break;
+    case NRF_DFU_EVT_TRANSPORT_ACTIVATED:
+        if (LEDS_NUMBER > 2)
+        {
+            bsp_board_led_off(BSP_BOARD_LED_0);
+            bsp_board_led_off(BSP_BOARD_LED_1);
+            bsp_board_led_on(BSP_BOARD_LED_2);
+            bsp_indication_set(BSP_INDICATE_ADVERTISING_DIRECTED);
+        }
+        break;
+    case NRF_DFU_EVT_DFU_STARTED:
+        break;
+    default:
+        break;
     }
 }
 
@@ -163,11 +159,9 @@ static void timers_init(void)
 /**@brief Setup board support */
 static void kaidyth_bsp_init(void)
 {
-    if (LEDS_NUMBER > 0) {
-        uint32_t err_code;
-        err_code = bsp_init(BSP_INIT_LEDS, NULL);
-        APP_ERROR_CHECK(err_code);
-    }
+    uint32_t err_code;
+    err_code = bsp_init(BSP_INIT_LEDS, NULL);
+    APP_ERROR_CHECK(err_code);
 
     NRF_LOG_DEBUG("Kaidyth DFU: BSP initialized");
 }
@@ -177,9 +171,11 @@ static void double_reset(void)
 {
     // Don't run the double reset check if we're already in DFU mode
     uint8_t gpregret0 = nrf_power_gpregret_get();
-    if (gpregret0 != BOOTLOADER_DFU_START) {
+    if (gpregret0 != BOOTLOADER_DFU_START)
+    {
         // Go into DFU mode if the magic double reset memory block is set
-        if ((*dblrst_mem) == DFU_DBLRST_MAGIC) {
+        if ((*dblrst_mem) == DFU_DBLRST_MAGIC)
+        {
             NRF_LOG_INFO("Kaidyth DFU: DBLRST: Double Reset detected, preparing to reboot into DFU mode.");
             nrf_power_gpregret_set(BOOTLOADER_DFU_START);
             do_reset();
@@ -199,10 +195,7 @@ static void double_reset(void)
 /**@brief Bootstrapping setup for custom functionality */
 static void kaidyth_bootstrap(void)
 {
-    if (LEDS_NUMBER > 0) {
-        bsp_board_init(BSP_INIT_LEDS);
-    }
-
+    bsp_board_init(BSP_INIT_LEDS);
     double_reset();
     timers_init();
     kaidyth_bsp_init();
@@ -219,12 +212,51 @@ int main(void)
     ret_val = nrf_bootloader_flash_protect(BOOTLOADER_START_ADDR, BOOTLOADER_SIZE, false);
     APP_ERROR_CHECK(ret_val);
 
-    (void) NRF_LOG_INIT(nrf_bootloader_dfu_timer_counter_get);
+    (void)NRF_LOG_INIT(nrf_bootloader_dfu_timer_counter_get);
     NRF_LOG_DEFAULT_BACKENDS_INIT();
 
     NRF_LOG_INFO("Kaidyth DFU: Inside main");
 
     kaidyth_bootstrap();
+
+// check if we got peer data from application dfu
+#define BLE_GAP_ADDR_LEN (6)
+    typedef struct
+    {
+        uint8_t addr_id_peer : 1;       /**< Only valid for peer addresses.
+                                             This bit is set by the SoftDevice to indicate whether the address has been resolved from
+                                             a Resolvable Private Address (when the peer is using privacy).
+                                             If set to 1, @ref addr and @ref addr_type refer to the identity address of the resolved address.
+      
+                                             This bit is ignored when a variable of type @ref ble_gap_addr_t is used as input to API functions. */
+        uint8_t addr_type : 7;          /**< See @ref BLE_GAP_ADDR_TYPES. */
+        uint8_t addr[BLE_GAP_ADDR_LEN]; /**< 48-bit address, LSB format.
+                                             @ref addr is not used if @ref addr_type is @ref BLE_GAP_ADDR_TYPE_ANONYMOUS. */
+    } ble_gap_addr_t;
+
+    // Peer data information so that bootloader could re-connect after reboot
+    typedef struct
+    {
+        ble_gap_addr_t addr;
+        // ble_gap_irk_t irk;
+        // ble_gap_enc_key_t enc_key;
+        // uint8_t sys_attr[8];
+        // uint16_t crc16;
+    } peer_data_t;
+
+    // VERIFY_STATIC(offsetof(peer_data_t, crc16) == 60);
+
+    /* Save Peer data
+     * Peer data address is defined in bootloader linker @0x20007F80
+     * - If bonded : save Security information
+     * - Otherwise : save Address for direct advertising
+     *
+     * TODO may force bonded only for security reason
+     */
+    peer_data_t *peer_data = (peer_data_t *)(0x20007F80UL);
+
+    NRF_LOG_DEBUG("peer data we got: ");
+    NRF_LOG_HEXDUMP_DEBUG(peer_data->addr.addr, BLE_GAP_ADDR_LEN);
 
     // Initiate the bootloader
     ret_val = nrf_bootloader_init(dfu_observer);

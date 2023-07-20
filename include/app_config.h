@@ -19,12 +19,9 @@ extern "C" {
 #define NRF_BL_APP_SIGNATURE_CHECK_REQUIRED 0
 #endif
 
-#ifdef BOARD_USE_SF_CLOCK
-#define NRF_SDH_CLOCK_LF_SRC 0
-#define NRF_SDH_CLOCK_LF_RC_CTIV 16
-#define NRF_SDH_CLOCK_LF_RC_TEMP_CTIV 2
-#define NRF_SDH_CLOCK_LF_ACCURACY 1
-#endif // BOARD_USE_SF_CLOCK
+#ifndef NRF_DFU_FORCE_DUAL_BANK_APP_UPDATES
+#define NRF_DFU_FORCE_DUAL_BANK_APP_UPDATES 1
+#endif
 
 #ifdef BOOTLOADER_DEBUG
 
@@ -37,7 +34,7 @@ extern "C" {
 #endif
 
 #ifndef NRF_LOG_DEFAULT_LEVEL
-#define NRF_LOG_DEFAULT_LEVEL 4
+#define NRF_LOG_DEFAULT_LEVEL 5
 #endif
 
 #ifndef APP_USBD_NRF_DFU_TRIGGER_CONFIG_LOG_ENABLED
@@ -77,7 +74,7 @@ extern "C" {
 #endif
 
 #ifndef NRF_SDH_BLE_LOG_LEVEL
-#define NRF_SDH_BLE_LOG_LEVEL 4
+#define NRF_SDH_BLE_LOG_LEVEL 5
 #endif
 
 #ifndef NRF_SDH_BLE_LOG_ENABLED
@@ -89,7 +86,7 @@ extern "C" {
 #endif
 
 #ifndef NRF_SDH_LOG_LEVEL
-#define NRF_SDH_LOG_LEVEL 4
+#define NRF_SDH_LOG_LEVEL 5
 #endif
 
 #endif // BOOTLOADER_DEBUG

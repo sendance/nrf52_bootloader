@@ -3,7 +3,7 @@ TARGETS          := nrf52840_xxaa
 OUTPUT_DIRECTORY := _build
 
 DEBUG ?= 0
-SD_REQ := 0xCA
+SD_REQ := 0xB6
 
 GIT_VERSION := $(shell git describe --always --tags)
 BOARD_DIST := $(BOARD)_bootloader-$(GIT_VERSION)
@@ -24,7 +24,7 @@ SDK_ROOT := $(NORDIC_SDK_PATH)
 PROJ_DIR := $(CURDIR)/../../..
 BOARD_DIR := $(CURDIR)
 BOARD_NAME := $(notdir $(patsubst %/,%,$(dir $(CURDIR))))
-OUTPUT_DIRECTORY := $(PROJ_DIR)/_build_$(BOARD_NAME)
+#OUTPUT_DIRECTORY := $(PROJ_DIR)/_build_$(BOARD_NAME)
 
 ifeq ($(DEBUG), 1)
 $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
@@ -130,9 +130,7 @@ SRC_FILES += \
   $(SDK_ROOT)/components/libraries/crypto/backend/oberon/oberon_backend_hash.c \
   $(SDK_ROOT)/components/libraries/crypto/backend/oberon/oberon_backend_hmac.c \
   $(SDK_ROOT)/components/libraries/bsp/bsp.c \
-  $(SDK_ROOT)/components/libraries/timer/app_timer2.c \
-  $(SDK_ROOT)/components/libraries/timer/drv_rtc.c \
-  $(SDK_ROOT)/components/libraries/sortlist/nrf_sortlist.c \
+  $(SDK_ROOT)/components/libraries/timer/app_timer.c \
   $(SDK_ROOT)/components/libraries/button/app_button.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_gpiote.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_pwm.c \
@@ -173,7 +171,6 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/stack_info \
   $(SDK_ROOT)/components/libraries/crypto/backend/nrf_hw \
   $(SDK_ROOT)/components/libraries/log \
-  $(SDK_ROOT)/components/libraries/sortlist \
   $(SDK_ROOT)/external/nrf_oberon \
   $(SDK_ROOT)/components/libraries/strerror \
   $(SDK_ROOT)/components/libraries/crypto/backend/mbedtls \
@@ -224,7 +221,7 @@ INC_FOLDERS += \
 
 # Libraries common to all targets
 LIB_FILES += \
-  $(SDK_ROOT)/external/nrf_oberon/lib/cortex-m4/hard-float/liboberon_3.0.1.a \
+  $(SDK_ROOT)/external/nrf_oberon/lib/cortex-m4/hard-float/liboberon_2.0.7.a \
   $(SDK_ROOT)/external/nrf_cc310_bl/lib/cortex-m4/hard-float/libnrf_cc310_bl_0.9.12.a \
 
 ifeq ($(DEBUG), 1)
@@ -237,14 +234,12 @@ OPT += -flto
 
 # C flags common to all targets
 CFLAGS += $(OPT)
-CFLAGS += -DAPP_TIMER_V2
-CFLAGS += -DAPP_TIMER_V2_RTC1_ENABLED
 CFLAGS += -DBLE_STACK_SUPPORT_REQD
 CFLAGS += -DFLOAT_ABI_HARD
 CFLAGS += -DNRF52840_XXAA
 CFLAGS += -DNRF_DFU_SETTINGS_VERSION=2
 CFLAGS += -DNRF_DFU_SVCI_ENABLED
-CFLAGS += -DNRF_SD_BLE_API_VERSION=7
+CFLAGS += -DNRF_SD_BLE_API_VERSION=6
 CFLAGS += -DS140
 CFLAGS += -DSOFTDEVICE_PRESENT
 CFLAGS += -DSVC_INTERFACE_CALL_AS_NORMAL_FUNCTION
@@ -268,10 +263,6 @@ ifeq ($(NRF_DFU_BL_ALLOW_DOWNGRADE), 1)
 CFLAGS += -DNRF_DFU_BL_ALLOW_DOWNGRADE=1
 endif
 
-ifeq ($(BOARD_USE_SF_CLOCK), 1)
-CFLAGS += -DBOARD_USE_SF_CLOCK=1
-endif
-
 # C++ flags common to all targets
 CXXFLAGS += $(OPT)
 
@@ -280,14 +271,12 @@ ASMFLAGS += -g3
 ASMFLAGS += -mcpu=cortex-m4
 ASMFLAGS += -mthumb -mabi=aapcs
 ASMFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
-ASMFLAGS += -DAPP_TIMER_V2
-ASMFLAGS += -DAPP_TIMER_V2_RTC1_ENABLED
 ASMFLAGS += -DBLE_STACK_SUPPORT_REQD
 ASMFLAGS += -DFLOAT_ABI_HARD
 ASMFLAGS += -DNRF52840_XXAA
 ASMFLAGS += -DNRF_DFU_SETTINGS_VERSION=2
 ASMFLAGS += -DNRF_DFU_SVCI_ENABLED
-ASMFLAGS += -DNRF_SD_BLE_API_VERSION=7
+ASMFLAGS += -DNRF_SD_BLE_API_VERSION=6
 ASMFLAGS += -DS140
 ASMFLAGS += -DSOFTDEVICE_PRESENT
 ASMFLAGS += -DSVC_INTERFACE_CALL_AS_NORMAL_FUNCTION
@@ -299,10 +288,6 @@ endif
 
 ifeq ($(NRF_DFU_BL_ALLOW_DOWNGRADE), 1)
 ASMFLAGS += -DNRF_DFU_BL_ALLOW_DOWNGRADE=1
-endif
-
-ifeq ($(BOARD_USE_SF_CLOCK), 1)
-ASMFLAGS += -DBOARD_USE_SF_CLOCK=1
 endif
 
 # Linker flags
@@ -328,6 +313,14 @@ LIB_FILES += -lc -lnosys -lm
 # Default target - first one defined
 default: nrf52840_xxaa
 
+# Print all targets that can be built
+help:
+	@echo following targets are available:
+	@echo		nrf52840_xxaa
+	@echo		flash_softdevice
+	@echo		sdk_config - starting external tool for editing sdk_config.h
+	@echo		flash      - flashing binary
+
 TEMPLATE_PATH := $(SDK_ROOT)/components/toolchain/gcc
 
 include $(TEMPLATE_PATH)/Makefile.common
@@ -347,16 +340,13 @@ endif
 
 # Flash softdevice
 flash_softdevice: dfu_package
-	@echo Flashing: s140_nrf52_7.0.1_softdevice.hex
-	nrfjprog -f nrf52 --program $(SDK_ROOT)/components/softdevice/s140/hex/s140_nrf52_7.0.1_softdevice.hex --sectorerase
+	@echo Flashing: s140_nrf52_6.1.1_softdevice.hex
+	nrfjprog -f nrf52 --program $(SDK_ROOT)/components/softdevice/s140/hex/s140_nrf52_6.1.1_softdevice.hex --sectorerase
 	nrfjprog -f nrf52 --reset
 
 flash: dfu_package
 	@echo Flashing: $(OUTPUT_DIRECTORY)/$(BOARD_DIST).hex
-	nrfjprog -f nrf52 --program $(OUTPUT_DIRECTORY)/$(BOARD_DIST)_s140.hex --sectoranduicrerase
-ifeq ($(BOARD), "pca10059")
-  nrfjprog --memwr 0x10001304 --val 0xFFFFFFFD
-endif
+	nrfjprog -f nrf52 --reset --program $(OUTPUT_DIRECTORY)/$(BOARD_DIST)_s140.hex --sectoranduicrerase
 
 usb_flash: $(OUTPUT_DIRECTORY)/$(BOARD_DIST)_s140.zip
 ifndef PORT
@@ -365,7 +355,7 @@ endif
 	nrfutil dfu usb-serial -pkg $(OUTPUT_DIRECTORY)/$(BOARD_DIST)_s140.zip -p $(PORT)
 
 $(OUTPUT_DIRECTORY)/$(BOARD_DIST)_s140.zip: merge
-	nrfutil pkg generate --sd-req $(SD_REQ) --hw-version 52 --key-file $(PROJ_DIR)/private.pem --bootloader-version $(BUILD_NUMBER) --bootloader $(OUTPUT_DIRECTORY)/nrf52840_xxaa.hex --softdevice $(SDK_ROOT)/components/softdevice/s140/hex/s140_nrf52_7.0.1_softdevice.hex $(OUTPUT_DIRECTORY)/$(BOARD_DIST)_s140.zip
+	nrfutil pkg generate --sd-req $(SD_REQ) --hw-version 52 --key-file $(PROJ_DIR)/private.pem --bootloader-version $(BUILD_NUMBER) --bootloader $(OUTPUT_DIRECTORY)/nrf52840_xxaa.hex --softdevice $(SDK_ROOT)/components/softdevice/s140/hex/s140_nrf52_6.1.1_softdevice.hex $(OUTPUT_DIRECTORY)/$(BOARD_DIST)_s140.zip
 
 $(OUTPUT_DIRECTORY)/$(BOARD_DIST).zip: default
 	nrfutil pkg generate --sd-req $(SD_REQ) --hw-version 52 --key-file $(PROJ_DIR)/private.pem --bootloader-version $(BUILD_NUMBER) --bootloader $(OUTPUT_DIRECTORY)/nrf52840_xxaa.hex $(OUTPUT_DIRECTORY)/$(BOARD_DIST).zip
@@ -375,7 +365,7 @@ dfu_package: $(OUTPUT_DIRECTORY)/$(BOARD_DIST)_s140.zip $(OUTPUT_DIRECTORY)/$(BO
 # Merge application and softdevice
 merge: default
 	@echo Merging application and softdevice...
-	mergehex -m $(OUTPUT_DIRECTORY)/nrf52840_xxaa.hex $(SDK_ROOT)/components/softdevice/s140/hex/s140_nrf52_7.0.1_softdevice.hex -o $(OUTPUT_DIRECTORY)/$(BOARD_DIST)_s140.hex
+	mergehex -m $(OUTPUT_DIRECTORY)/nrf52840_xxaa.hex $(SDK_ROOT)/components/softdevice/s140/hex/s140_nrf52_6.1.1_softdevice.hex -o $(OUTPUT_DIRECTORY)/$(BOARD_DIST)_s140.hex
 
 erase:
 	nrfjprog -f nrf52 --eraseall

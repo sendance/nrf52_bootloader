@@ -1,4 +1,6 @@
 *.pem
 dfu_public_key.c
 _build_*
+_build*
+**/_build/
 *.zip
