@@ -216,6 +216,7 @@ int main(void)
     NRF_LOG_DEFAULT_BACKENDS_INIT();
 
     NRF_LOG_INFO("Kaidyth DFU: Inside main");
+	NRF_LOG_INFO("bootloader startaddr: %x , size: %x", BOOTLOADER_START_ADDR, BOOTLOADER_SIZE);
 
     kaidyth_bootstrap();
 
