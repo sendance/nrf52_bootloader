@@ -88,7 +88,7 @@ static void do_reset(void)
 
 static void on_error(void)
 {
-    do_reset();
+    // do nothing
 }
 
 void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t *p_file_name)
@@ -99,7 +99,11 @@ void app_error_handler(uint32_t error_code, uint32_t line_num, const uint8_t *p_
 
 void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 {
+
+    error_info_t *pErr = (error_info_t *)info;    
     NRF_LOG_ERROR("Kaidyth DFU: Received a fault! id: 0x%08x, pc: 0x%08x, info: 0x%08x", id, pc, info);
+    NRF_LOG_ERROR("%s : %d error code: %d", pErr->p_file_name, pErr->line_num, pErr->err_code);
+
     on_error();
 }
 
