@@ -36,7 +36,10 @@ ifndef PORT
 	$(error PORT must be defined to perform usb serial flashing)
 endif
 
-clean: check-env patch ## Cleans the environment for the specified board
+clean_win:
+	@rm -rf boards/$(BOARD)/s140/_build 
+
+clean: check-env patch
 ifneq ($(filter $(BOARD),$(BOARD_LIST)),)
 	@cd boards/$(BOARD)/s140 && $(MAKE) clean
 	@rm -rf $(BOARD).hex
@@ -69,3 +72,7 @@ patch: ## Patches the files in the nordic SDK to support additional bootloader f
 			patch --forward --unified $(NORDIC_SDK_PATH)/$${file} ./sdk/$${file}; \
 		fi \
 	done;
+
+sdk_config:
+	$(MAKE) -C boards/$(BOARD)/s140 sdk_config
+

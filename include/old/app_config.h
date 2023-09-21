@@ -26,19 +26,37 @@ extern "C" {
 #define NRF_SDH_CLOCK_LF_ACCURACY 1
 #endif // BOARD_USE_SF_CLOCK
 
-#ifdef BOOTLOADER_DEBUG
+
 
 #ifndef NRF_DFU_BL_ALLOW_DOWNGRADE
 #define NRF_DFU_BL_ALLOW_DOWNGRADE 1
 #endif
 
+
+
+
+#ifdef BOOTLOADER_DEBUG
+
 #ifndef NRF_LOG_ENABLED
 #define NRF_LOG_ENABLED 1
 #endif
 
+#else
+
+#ifndef NRF_LOG_ENABLED
+#define NRF_LOG_ENABLED 0
+#endif
+
+#endif
+
+#ifdef BOOTLOADER_DEBUG
+
+
+
 #ifndef NRF_LOG_DEFAULT_LEVEL
 #define NRF_LOG_DEFAULT_LEVEL 4
 #endif
+
 
 #ifndef APP_USBD_NRF_DFU_TRIGGER_CONFIG_LOG_ENABLED
 #define APP_USBD_NRF_DFU_TRIGGER_CONFIG_LOG_ENABLED 1
@@ -67,6 +85,7 @@ extern "C" {
 #ifndef USBD_CONFIG_LOG_LEVEL
 #define USBD_CONFIG_LOG_LEVEL 4
 #endif
+
 
 #ifndef NRF_LOG_BACKEND_RTT_ENABLED
 #define NRF_LOG_BACKEND_RTT_ENABLED 1

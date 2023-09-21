@@ -62,7 +62,7 @@
 #include "nrf_bootloader_info.h"
 #include "nrfx.h"
 #include "app_timer.h"
-#include "nrf_drv_clock.h"
+//#include "nrf_drv_clock.h"
 #include "nrf_delay.h"
 #include "nrf_power.h"
 
@@ -91,7 +91,12 @@ static void do_reset(void)
 
 static void on_error(void)
 {
-    do_reset();
+    NRF_LOG_ERROR("error happened");
+    nrf_delay_ms(200);
+    NRF_LOG_FINAL_FLUSH();
+    
+
+    // do nothing
 }
 
 
