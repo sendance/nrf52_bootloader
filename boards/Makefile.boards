@@ -32,7 +32,7 @@ $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
   LINKER_SCRIPT  := $(BOARD_DIR)/../../secure_bootloader_gcc_nrf52_debug.ld
 else
 $(OUTPUT_DIRECTORY)/nrf52840_xxaa.out: \
-  LINKER_SCRIPT  := $(BOARD_DIR)/../../secure_bootloader_gcc_nrf52_debug.ld
+  LINKER_SCRIPT  := $(BOARD_DIR)/../../secure_bootloader_gcc_nrf52.ld
 endif
 
 # Source files common to all targets
@@ -129,7 +129,7 @@ SRC_FILES += \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_gpiote.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_pwm.c \
 
-#ifeq ($(DEBUG), 1)
+ifeq ($(DEBUG), 1)
 SRC_FILES += \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_rtt.c \
   $(SDK_ROOT)/components/libraries/log/src/nrf_log_backend_serial.c \
@@ -137,7 +137,7 @@ SRC_FILES += \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c \
   $(SDK_ROOT)/external/segger_rtt/SEGGER_RTT_printf.c \
 
-#endif
+endif
 # Include folders common to all targets
 INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/crypto/backend/micro_ecc \
@@ -245,9 +245,9 @@ CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin -fshort-enums
 
 
-CFLAGS += -DDEBUG_NRF
 
 ifeq ($(DEBUG),1)
+CFLAGS += -DDEBUG_NRF
 CFLAGS += -DBOOTLOADER_DEBUG # custom defined flag that is used in app_config.h
 CFLAGS += -DDEBUG
 CFLAGS += -DNRF_DFU_DEBUG_VERSION 
@@ -343,12 +343,6 @@ flash_softdevice: dfu_package
 flash: dfu_package
 	@echo Flashing: $(OUTPUT_DIRECTORY)/$(BOARD_DIST).hex
 	nrfjprog -f nrf52 --reset --program $(OUTPUT_DIRECTORY)/$(BOARD_DIST)_s140.hex --sectoranduicrerase
-
-usb_flash: $(OUTPUT_DIRECTORY)/$(BOARD_DIST)_s140.zip
-ifndef PORT
-	$(error PORT must be defined to perform usb serial flashing)
-endif
-	nrfutil dfu usb-serial -pkg $(OUTPUT_DIRECTORY)/$(BOARD_DIST)_s140.zip -p $(PORT)
 
 $(OUTPUT_DIRECTORY)/$(BOARD_DIST)_s140.zip: merge
 	nrfutil pkg generate --sd-req $(SD_REQ) --hw-version 52 --key-file $(PROJ_DIR)/private.pem --bootloader-version $(BUILD_NUMBER) --bootloader $(OUTPUT_DIRECTORY)/nrf52840_xxaa.hex --softdevice $(SDK_ROOT)/components/softdevice/s140/hex/s140_nrf52_6.1.1_softdevice.hex $(OUTPUT_DIRECTORY)/$(BOARD_DIST)_s140.zip
