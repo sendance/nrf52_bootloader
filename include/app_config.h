@@ -97,7 +97,7 @@ extern "C" {
 #endif
 
 #ifndef NRF_LOG_ENABLED
-#define NRF_LOG_ENABLED 1
+#define NRF_LOG_ENABLED 0
 #endif
 
 #ifndef NRF_LOG_DEFAULT_LEVEL
