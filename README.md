@@ -31,10 +31,19 @@ compiler: defined in Makefile.windows
 GNU_INSTALL_ROOT := C:/Users/JSE-Sendance/libraries/arm_toolchain/9_2020-q2-update/bin/
 (use exactly this version of the compiler, you can find it online)
 
+
+Also for the debug build merge the bootloader_settings.hex file with the output of the make:
+mergehex -m .\bootloader_settings.hex .\boards\feather-express\s140\_build\debug_feather-express_bootloader-v0.1.0-8-g49e881c-dirty_s140.hex -o bl.hex
+
+And then flash:
+nrfjprog -f nrf52 --program .\bl.hex --sectoranduicrerase --verify
+
+
 Also important to read:
 https://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.sdk5.v15.0.0%2Flib_bootloader_dfu_banks.html
 
-
+# RTT is disabled 
+In the debug bootloader temporarily, so that the application can output to RTT. Both does only work with changes in the SDK and linker.
 
 
 # Kaidyth Bootloader

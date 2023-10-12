@@ -65,6 +65,7 @@ extern "C" {
 #define USBD_CONFIG_LOG_LEVEL 4
 #endif
 
+/* enabled this if you only need to debug the bootloader via RTT, RTT cant work with bl and application simultaneously
 #ifndef NRF_LOG_BACKEND_RTT_ENABLED
 #define NRF_LOG_BACKEND_RTT_ENABLED 1
 #endif
@@ -72,6 +73,7 @@ extern "C" {
 #ifndef NRF_LOG_BACKEND_SERIAL_USES_RTT
 #define NRF_LOG_BACKEND_SERIAL_USES_RTT 1
 #endif
+*/
 
 #ifndef NRF_SDH_BLE_LOG_LEVEL
 #define NRF_SDH_BLE_LOG_LEVEL 5
